@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql:8.0  # 使用MySQL 8.0版本镜像，可以根据需要调整版本
+    container_name: mysql_container  # 容器名称
+    environment:
+      MYSQL_ROOT_PASSWORD: example_root_password  # 设置MySQL root用户的密码
+      MYSQL_DATABASE: example_database  # 初始化数据库的名称
+      MYSQL_USER: example_user  # 创建的数据库用户
+      MYSQL_PASSWORD: example_password  # 数据库用户的密码
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql  # 持久化数据，防止容器重启时数据丢失
+    networks:
+      - mysql_network
+
+volumes:
+  mysql_data:
+
+networks:
+  mysql_network:
+    driver: bridge
