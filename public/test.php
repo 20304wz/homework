@@ -1,72 +1,45 @@
-<!--<?php
-// 显示 PHP 错误（调试用）
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// 数据库连接配置
-$servername = "localhost";
-$username = "root";
-$password = "20030304Yjm."; // 根据实际密码填写
-$dbname = "questionnaire";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-  die("连接失败: " . $conn->connect_error);
-}
-
-// 包含获取题目数据和总题目数的文件
-include 'get_questions.php';
-include 'get_total_questions.php';
-
-// 预定义每个选项的分数
-$score_map = [
-  'A' => 95,
-  'B' => 75,
-  'C' => 60,
-  'D' => 35,
-  'E' => 15
-];
-
-// 获取提交的答案数据
-$answers = [];
-$total_score = 0; // 用于累加所有题目的分数
-foreach ($_POST as $key => $value) {
-  if (strpos($key, 'question_') === 0) {
-    $answers[] = $value; // 记录用户选择的答案（如 "A", "B", "C", "D", "E"）
-    $total_score += $score_map[$value]; // 根据选项映射累加分数
-  }
-}
-
-// 计算平均分（使用总题目数）
-if ($total_questions > 0) {
-  $average_score = intval($total_score / $total_questions); // 求平均分并取整
-} else {
-  $average_score = 0; // 如果没有题目，设置默认分数为 0 或其他适当的值
-}
-
-// 将答案数组转为字符串格式，例如 "A,B,C,D,E"
-$answers_string = implode(",", $answers);
-
-// 准备 SQL 插入语句，将答案和平均分一同插入
-$sql = "INSERT INTO answer (singleAnswer, score) VALUES (?, ?)";
-$stmt = $conn->prepare($sql);
-
-if (!$stmt) {
-  die("准备语句失败: " . $conn->error);
-}
-
-// 绑定参数并执行插入
-$stmt->bind_param("si", $answers_string, $average_score);
-
-if ($stmt->execute()) {
-  echo "答案和分数提交成功！";
-} else {
-  echo "答案提交失败：" . $stmt->error;
-}
-
-// 关闭语句和数据库连接
-$stmt->close();
-$conn->close();
+<?php
+include 'get_questions.php'; // 单选题数据
+include 'get_multiple_questions.php'; // 多选题数据
+include 'get_subjective_questions.php'; // 主观题数据
+include 'get_table_questions.php'; // 表格列问题数据 (包含 Q1, Q2, Q3)
+include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
 ?>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>选择题测试</title>
+</head>
+<body>
+<form action="submit_quiz.php" method="POST">
+
+  <!-- 单选题、多选题、主观题部分（省略，参考前面代码） -->
+
+  <!-- 表格题部分 -->
+  <h3>表格题</h3>
+  <table border="1">
+    <tr>
+      <th>题目</th>
+      <?php foreach (['Q1', 'Q2', 'Q3'] as $column_question): ?>
+        <th><?php echo htmlspecialchars($table_questions[$column_question]); ?></th>
+      <?php endforeach; ?>
+    </tr>
+
+    <!-- 生成表格的列问题作为行 -->
+    <?php foreach ($table_columns as $column): ?>
+      <tr>
+        <td><?php echo htmlspecialchars($column["name"]); ?></td>
+        <?php foreach (['Q1', 'Q2', 'Q3'] as $row_question): ?>
+          <td>
+            <input type="text" name="table_<?php echo $column['id']; ?>_<?php echo $row_question; ?>" placeholder="请输入答案">
+          </td>
+        <?php endforeach; ?>
+      </tr>
+    <?php endforeach; ?>
+  </table>
+
+  <input type="submit" value="提交答案">
+</form>
+</body>
+</html>
