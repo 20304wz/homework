@@ -65,21 +65,21 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
   <?php foreach ($multiple_questions as $multiple_question): ?>
     <div>
       <p><?php echo $multiple_choice_count . ". " . htmlspecialchars($multiple_question["name"]); ?></p>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($question["A"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($question["B"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo$multiple_question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($question["C"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($question["D"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($multiple_question["A"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($multiple_question["B"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo$multiple_question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($multiple_question["C"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($multiple_question["D"]); ?></label><br>
     </div>
     <hr>
     <?php $multiple_choice_count++; ?>
   <?php endforeach; ?>
 
-  <!-- 主观题部分 -->
+
   <h3 id="subquestion">3.主观题</h3>
   <?php foreach ($subjective_questions as $subjective_question): ?>
     <div>
       <p><?php echo htmlspecialchars($subjective_question["question"]); ?></p>
-      <textarea name="question_<?php echo $subjective_question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
+      <textarea name="subjective_<?php echo $subjective_question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
     </div>
     <hr>
   <?php endforeach; ?>

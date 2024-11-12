@@ -1,10 +1,6 @@
 <?php
-// 显示 PHP 错误（调试用）
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// 数据库连接配置
 include 'db_connection.php';
-
 // 预定义单选题得分映射
 $single_score_map = [
   'A' => 95,
@@ -17,11 +13,6 @@ $single_score_map = [
 // 初始化分数
 $total_single_score = 0;
 $total_multi_score = 0;
-
-// 检查POST数据
-echo "<pre>";
-print_r($_POST);
-echo "</pre>";
 
 // 处理单选题答案并构建答案描述
 $single_answers = [];
@@ -61,7 +52,8 @@ foreach ($_POST as $key => $value) {
     if (isset($correct_multi_answers[$index]) && in_array($correct_multi_answers[$index], $value)) {
       $total_multi_score += 1;
     }
-    $multi_answer_desc[] = "第{$question_count}题选择了{$answer_str}";
+    $answer_str_no_comma = str_replace(',', '', $answer_str);
+    $multi_answer_desc[] = "第{$question_count}题选择了{$answer_str_no_comma}";
     $question_count++;
   }
 }
@@ -73,13 +65,13 @@ foreach ($multi_answer_desc as $desc) {
 }
 
 // 调试输出
-echo "单选答案字符串: " . $single_answers_string . "<br>";
-echo "单选总分: " . $total_single_score . "<br>";
-echo "多选答案字符串: " . $multi_answers_string . "<br>";
-echo "多选总分: " . $total_multi_score . "<br>";
+echo "单选答案字符串: ". $single_answers_string. "<br>";
+echo "单选总分: ". $total_single_score. "<br>";
+echo "多选答案字符串: ". $multi_answers_string. "<br>";
+echo "多选总分: ". $total_multi_score. "<br>";
 
 // 插入数据到 answer 表
-$sql = "INSERT INTO answer (singleAnswer, score, mulAnswer, mulscore) VALUES (?, ?, ?, ?)";
+$sql = "INSERT INTO answer (singleAnswer, score, mulAnswer, mulscore) VALUES (?,?,?,?)";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("sisi", $single_answers_string, $total_single_score, $multi_answers_string, $total_multi_score);
 
@@ -87,7 +79,7 @@ $stmt->bind_param("sisi", $single_answers_string, $total_single_score, $multi_an
 if ($stmt->execute()) {
   echo "答案和分数提交成功！";
 } else {
-  echo "答案提交失败：" . $stmt->error;
+  echo "答案提交失败：". $stmt->error;
 }
 
 // 关闭连接
