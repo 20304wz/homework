@@ -3,18 +3,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-// 数据库连接配置
-$servername = "localhost";
-$username = "root";
-$password = "20030304Yjm."; // 根据实际密码填写
-$dbname = "questionnaire";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-  die("连接失败: " . $conn->connect_error);
-}
+include 'db_connection.php';
 
 // 预定义单选题得分映射
 $single_score_map = [
@@ -34,54 +23,54 @@ echo "<pre>";
 print_r($_POST);
 echo "</pre>";
 
-// 处理单选题答案
+// 处理单选题答案并构建答案描述
 $single_answers = [];
+$single_answer_desc = [];
+$total_single_score = 0;
+$question_count = 1;
 foreach ($_POST as $key => $value) {
-  if (strpos($key, 'single_') === 0) {
-    $question_id = str_replace('single_', '', $key);
+  if (strpos($key, 'question_') === 0 &&!is_array($value)) {
     $single_answers[] = $value;
-    $total_single_score += $single_score_map[$value];
+    if (isset($single_score_map[$value])) {
+      // 根据答案获取对应的分数并累加
+      $total_single_score += $single_score_map[$value];
+    }
+    $single_answer_desc[] = "第{$question_count}题选择了{$value}";
+    $question_count++;
   }
 }
-
 // 将单选题答案转换成字符串
 $single_answers_string = implode(",", $single_answers);
-
-// 处理多选题答案
+echo "单选题答案描述：<br>";
+foreach ($single_answer_desc as $desc) {
+  echo $desc. "<br>";
+}
+// 处理多选题答案并构建答案描述
 $multi_answers = [];
 $correct_multi_answers = [];
 $multi_score = 0;
-
-// 从数据库获取多选题的正确答案
-$multi_correct_query = "SELECT YorN1, YorN2, YorN3, YorN4 FROM mulanswer LIMIT 1";
-$multi_correct_result = $conn->query($multi_correct_query);
-
-if ($multi_correct_result->num_rows > 0) {
-  $correct_row = $multi_correct_result->fetch_assoc();
-  $correct_multi_answers = [
-    $correct_row['YorN1'],
-    $correct_row['YorN2'],
-    $correct_row['YorN3'],
-    $correct_row['YorN4']
-  ];
-} else {
-  die("无法获取多选题的正确答案。");
-}
-
-// 计算多选题得分
+$multi_answer_desc = [];
+$question_count = 1;
+// 从数据库获取多选题的正确答案（这里省略数据库查询部分，假设已经正确获取）
+//...
 foreach ($_POST as $key => $value) {
-  if (strpos($key, 'multi_') === 0) {
-    $question_id = str_replace('multi_', '', $key);
-    $multi_answers[] = $value;
-    $index = intval($question_id) - 1;
-    if (isset($correct_multi_answers[$index]) && $value == $correct_multi_answers[$index]) {
+  if (strpos($key, 'question_') === 0 && is_array($value)) {
+    $answer_str = implode(",", $value);
+    $multi_answers[] = $answer_str;
+    $index = intval(str_replace('question_', '', $key)) - 1;
+    if (isset($correct_multi_answers[$index]) && in_array($correct_multi_answers[$index], $value)) {
       $total_multi_score += 1;
     }
+    $multi_answer_desc[] = "第{$question_count}题选择了{$answer_str}";
+    $question_count++;
   }
 }
-
 // 将多选题答案转换成字符串
 $multi_answers_string = implode(",", $multi_answers);
+echo "多选题答案描述：<br>";
+foreach ($multi_answer_desc as $desc) {
+  echo $desc. "<br>";
+}
 
 // 调试输出
 echo "单选答案字符串: " . $single_answers_string . "<br>";

@@ -9,15 +9,27 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>选择题测试</title>
+  <title>毕业生调查问卷</title>
 </head>
 <body>
-<form action="submit_quiz.php" method="POST">g
-    <!-- 表格行 -->
-  </table>
-
+<form action="submit_quiz.php" method="POST">
+  <style>
+    .question-links {
+      font-size: 23px;
+    }
+    .red-text {
+      color: red;
+    }
+  </style>
+  <div class="question-links" style="text-align: center;">
+    题目目录<br />
+    <a href="#singlechoice">一.选择题</a>
+    <a href="#mulchoice">二.多选题</a><br />
+    <a href="#subquestion">三.主观题</a>
+    <a href="#tablequestion">四.表格题</a>
+  </div>
+  <h3 id="singlechoice">1.单选题</h3>
   <!-- 单选题部分 -->
-  <h3>单选题</h3>
   <?php $single_choice_count = 1; ?>
   <?php foreach ($questions as $question): ?>
     <div>
@@ -48,32 +60,32 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
   <?php endforeach; ?>
 
   <!-- 多选题部分 -->
-  <h3>多选题</h3>
+  <h3 id="mulchoice">2.多选题</h3>
   <?php $multiple_choice_count = 1; ?>
-  <?php foreach ($multiple_questions as $question): ?>
+  <?php foreach ($multiple_questions as $multiple_question): ?>
     <div>
-      <p><?php echo $multiple_choice_count . ". " . htmlspecialchars($question["name"]); ?></p>
-      <label><input type="checkbox" name="question_<?php echo $question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($question["A"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($question["B"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($question["C"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($question["D"]); ?></label><br>
+      <p><?php echo $multiple_choice_count . ". " . htmlspecialchars($multiple_question["name"]); ?></p>
+      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($question["A"]); ?></label><br>
+      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($question["B"]); ?></label><br>
+      <label><input type="checkbox" name="question_<?php echo$multiple_question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($question["C"]); ?></label><br>
+      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($question["D"]); ?></label><br>
     </div>
     <hr>
     <?php $multiple_choice_count++; ?>
   <?php endforeach; ?>
 
   <!-- 主观题部分 -->
-  <h3>主观题</h3>
-  <?php foreach ($subjective_questions as $question): ?>
+  <h3 id="subquestion">3.主观题</h3>
+  <?php foreach ($subjective_questions as $subjective_question): ?>
     <div>
-      <p><?php echo htmlspecialchars($question["question"]); ?></p>
-      <textarea name="question_<?php echo $question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
+      <p><?php echo htmlspecialchars($subjective_question["question"]); ?></p>
+      <textarea name="question_<?php echo $subjective_question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
     </div>
     <hr>
   <?php endforeach; ?>
 
   <!-- 表格题部分 -->
-  <h3>表格题</h3>
+  <h3 id="tablequestion">4.表格题</h3>
   <table border="1" width="40%"  cellspacing="0" cellpadding="5">
     <tr>
       <th>题目</th>
