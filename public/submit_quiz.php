@@ -45,10 +45,10 @@ $question_count = 1;
 // 从数据库获取多选题的正确答案（这里省略数据库查询部分，假设已经正确获取）
 //...
 foreach ($_POST as $key => $value) {
-  if (strpos($key, 'question_') === 0 && is_array($value)) {
+  if (strpos($key, 'multiple_question_') === 0 && is_array($value)) {
     $answer_str = implode(",", $value);
     $multi_answers[] = $answer_str;
-    $index = intval(str_replace('question_', '', $key)) - 1;
+    $index = intval(str_replace('multiple_question_', '', $key)) - 1;
     if (isset($correct_multi_answers[$index]) && in_array($correct_multi_answers[$index], $value)) {
       $total_multi_score += 1;
     }
