@@ -35,23 +35,23 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
     <div>
       <p><?php echo $single_choice_count . ". " . htmlspecialchars($question["question"]); ?></p>
       <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="A">
+        <input type="radio" name="question_<?php echo $question['ID']; ?>" value="A">
         <?php echo htmlspecialchars($question["A"]); ?>
       </label><br>
       <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="B">
+        <input type="radio" name="question_<?php echo $question['ID']; ?>" value="B">
         <?php echo htmlspecialchars($question["B"]); ?>
       </label><br>
       <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="C">
+        <input type="radio" name="question_<?php echo $question['ID']; ?>" value="C">
         <?php echo htmlspecialchars($question["C"]); ?>
       </label><br>
       <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="D">
+        <input type="radio" name="question_<?php echo $question['ID']; ?>" value="D">
         <?php echo htmlspecialchars($question["D"]); ?>
       </label><br>
       <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="E">
+        <input type="radio" name="question_<?php echo $question['ID']; ?>" value="E">
         <?php echo htmlspecialchars($question["E"]); ?>
       </label><br>
     </div>
@@ -65,10 +65,10 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
   <?php foreach ($multiple_questions as $multiple_question): ?>
     <div>
       <p><?php echo $multiple_choice_count . ". " . htmlspecialchars($multiple_question["name"]); ?></p>
-      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($multiple_question["A"]); ?></label><br>
-      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($multiple_question["B"]); ?></label><br>
-      <label><input type="checkbox" name="multiple_question_<?php echo$multiple_question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($multiple_question["C"]); ?></label><br>
-      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($multiple_question["D"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['ID']; ?>[]" value="A"> <?php echo htmlspecialchars($multiple_question["A"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['ID']; ?>[]" value="B"> <?php echo htmlspecialchars($multiple_question["B"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo$multiple_question['ID']; ?>[]" value="C"> <?php echo htmlspecialchars($multiple_question["C"]); ?></label><br>
+      <label><input type="checkbox" name="multiple_question_<?php echo $multiple_question['ID']; ?>[]" value="D"> <?php echo htmlspecialchars($multiple_question["D"]); ?></label><br>
     </div>
     <hr>
     <?php $multiple_choice_count++; ?>
@@ -79,7 +79,7 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
   <?php foreach ($subjective_questions as $subjective_question): ?>
     <div>
       <p><?php echo htmlspecialchars($subjective_question["question"]); ?></p>
-      <textarea name="subjective_<?php echo $subjective_question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
+      <textarea name="subjective_<?php echo $subjective_question['ID']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
     </div>
     <hr>
   <?php endforeach; ?>
@@ -103,7 +103,7 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
         <?php foreach ($table_questions as $question): ?>
           <td>
             <input type="text"
-                   name="table_<?php echo htmlspecialchars($column['id']); ?>_<?php echo htmlspecialchars($question['ID']); ?>"
+                   name="table_<?php echo htmlspecialchars($column['ID']); ?>_<?php echo htmlspecialchars($question['ID']); ?>"
                    placeholder="">
           </td>
         <?php endforeach; ?>
