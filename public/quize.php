@@ -86,25 +86,32 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
 
   <!-- 表格题部分 -->
   <h3 id="tablequestion">4.表格题</h3>
-  <table border="1" width="40%"  cellspacing="0" cellpadding="5">
+  <table border="1" width="40%" cellspacing="0" cellpadding="5">
     <tr>
       <th>题目</th>
-      <?php foreach (['Q1', 'Q2', 'Q3'] as $column_question): ?>
-        <th><?php echo htmlspecialchars($table_questions[$column_question]); ?></th>
+      <!-- 动态生成列标题 -->
+      <?php foreach ($table_questions as $question): ?>
+        <th><?php echo htmlspecialchars($question['row_question']); ?></th>
       <?php endforeach; ?>
     </tr>
 
-    <!-- 生成表格的列问题作为行 -->
+    <!-- 假设 $table_columns 是已经定义的数组，包含列问题的数据 -->
     <?php foreach ($table_columns as $column): ?>
       <tr>
         <td><?php echo htmlspecialchars($column["name"]); ?></td>
-        <?php foreach (['Q1', 'Q2', 'Q3'] as $row_question): ?>
+        <!-- 动态生成每一列对应的输入框 -->
+        <?php foreach ($table_questions as $question): ?>
           <td>
-            <input type="text" name="table_<?php echo $column['id']; ?>_<?php echo $row_question; ?>" placeholder="">
+            <input type="text"
+                   name="table_<?php echo htmlspecialchars($column['id']); ?>_<?php echo htmlspecialchars($question['ID']); ?>"
+                   placeholder="">
           </td>
         <?php endforeach; ?>
       </tr>
     <?php endforeach; ?>
+  </table>
+
+
   </table>
 
   <input type="submit" value="提交答案">
