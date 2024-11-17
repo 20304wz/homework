@@ -57,6 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border-collapse: collapse;
       margin-top: 20px;
     }
+    button {
+      font-size: 1.2em; /* 增大按钮文字 */
+      padding: 15px 25px; /* 增大按钮大小 */
+      border: none;
+      border-radius: 10px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+
+    }
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
@@ -135,5 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // 切换表格时实时加载内容
   tableSelect.addEventListener('change', loadTableContent);
 </script>
+<div class="button-container">
+  <a href="Ruler.php"><button>返回初始界面</button></a>
+</div>
 </body>
 </html>

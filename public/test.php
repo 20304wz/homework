@@ -1,114 +1,159 @@
 <?php
-include 'get_questions.php'; // 单选题数据
-include 'get_multiple_questions.php'; // 多选题数据
-include 'get_subjective_questions.php'; // 主观题数据
-include 'get_table_questions.php'; // 表格列问题数据 (包含 Q1, Q2, Q3)
-include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
+// 数据库连接设置
+include 'db_connection.php';
+
+// 获取所有表名
+$sql = "SHOW TABLES";
+$result = $conn->query($sql);
+$tables = [];
+while ($row = $result->fetch_array()) {
+  $tables[] = $row[0];
+}
+
+// 处理表单提交
+$message = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (!empty($_POST['table_name']) && !empty($_POST['columns']) && !empty($_POST['values'])) {
+    $table_name = $_POST['table_name'];
+    $columns = $_POST['columns'];
+    $values = $_POST['values'];
+
+    // 构建 SQL 查询
+    $columnsStr = implode(", ", array_map(function ($col) {
+      return "`" . trim($col) . "`";
+    }, explode(",", $columns)));
+
+    $valuesStr = implode(", ", array_map(function ($val) {
+      return "'" . trim($val) . "'";
+    }, explode(",", $values)));
+
+    $sql = "INSERT INTO `$table_name` ($columnsStr) VALUES ($valuesStr)";
+
+    if ($conn->query($sql) === TRUE) {
+      $message = "数据成功插入到表 $table_name 中！";
+    } else {
+      $message = "插入失败: " . $conn->error;
+    }
+  } else {
+    $message = "请完整填写表名、字段和数据！";
+  }
+}
+
+// 关闭连接
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>毕业生调查问卷</title>
-</head>
-<body>
-<form action="submit_quiz.php" method="POST">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>增加数据并实时查看</title>
   <style>
-    .question-links {
-      font-size: 23px;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
     }
-    .red-text {
-      color: red;
+    h1 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      margin: 10px 0;
+      padding: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    button {
+      font-size: 1.2em; /* 增大按钮文字 */
+      padding: 15px 25px; /* 增大按钮大小 */
+      border: none;
+      border-radius: 10px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .message {
+      margin-top: 20px;
+      color: green;
     }
   </style>
-  <div class="question-links" style="text-align: center;">
-    题目目录<br />
-    <a href="#singlechoice">一.选择题</a>
-    <a href="#mulchoice">二.多选题</a><br />
-    <a href="#subquestion">三.主观题</a>
-    <a href="#tablequestion">四.表格题</a>
-  </div>
-  <h3 id="singlechoice">1.单选题</h3>
-  <!-- 单选题部分 -->
-  <?php $single_choice_count = 1; ?>
-  <?php foreach ($questions as $question): ?>
-    <div>
-      <p><?php echo $single_choice_count . ". " . htmlspecialchars($question["question"]); ?></p>
-      <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="A">
-        <?php echo htmlspecialchars($question["A"]); ?>
-      </label><br>
-      <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="B">
-        <?php echo htmlspecialchars($question["B"]); ?>
-      </label><br>
-      <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="C">
-        <?php echo htmlspecialchars($question["C"]); ?>
-      </label><br>
-      <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="D">
-        <?php echo htmlspecialchars($question["D"]); ?>
-      </label><br>
-      <label>
-        <input type="radio" name="question_<?php echo $question['id']; ?>" value="E">
-        <?php echo htmlspecialchars($question["E"]); ?>
-      </label><br>
-    </div>
-    <hr>
-    <?php $single_choice_count++; ?>
-  <?php endforeach; ?>
-  <!-- 多选题部分 -->
-  <h3 id="mulchoice">2.多选题</h3>
-  <?php $multiple_choice_count = 1; ?>
-  <?php foreach ($multiple_questions as $multiple_question): ?>
-    <div>
-      <p><?php echo $multiple_choice_count . ". " . htmlspecialchars($multiple_question["name"]); ?></p>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="A"> <?php echo htmlspecialchars($multiple_question["A"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="B"> <?php echo htmlspecialchars($multiple_question["B"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo$multiple_question['id']; ?>[]" value="C"> <?php echo htmlspecialchars($multiple_question["C"]); ?></label><br>
-      <label><input type="checkbox" name="question_<?php echo $multiple_question['id']; ?>[]" value="D"> <?php echo htmlspecialchars($multiple_question["D"]); ?></label><br>
-    </div>
-    <hr>
-    <?php $multiple_choice_count++; ?>
-  <?php endforeach; ?>
+</head>
+<body>
+<h1>增加数据并实时查看表内容</h1>
 
-
-  <!-- 表格题部分 -->
-  <h3 id="tablequestion">4.表格题</h3>
-  <table border="1" width="40%"  cellspacing="0" cellpadding="5">
-    <tr>
-      <th>题目</th>
-      <?php foreach (['Q1', 'Q2', 'Q3'] as $column_question): ?>
-        <th><?php echo htmlspecialchars($table_questions[$column_question]); ?></th>
-      <?php endforeach; ?>
-    </tr>
-
-    <h3 id="subquestion">3.主观题</h3>
-    <?php foreach ($subjective_questions as $subjective_question): ?>
-      <div>
-        <p><?php echo htmlspecialchars($subjective_question["question"]); ?></p>
-        <textarea name="subjective_<?php echo $subjective_question['id']; ?>" rows="4" cols="50" placeholder="请输入您的答案"></textarea>
-      </div>
-      <hr>
+<!-- 选择表格 -->
+<form method="POST" id="add-form">
+  <label for="table_name">选择表格：</label>
+  <select name="table_name" id="table_name" required>
+    <option value="">-- 请选择表格 --</option>
+    <?php foreach ($tables as $table): ?>
+      <option value="<?= $table ?>" <?= isset($_POST['table_name']) && $_POST['table_name'] === $table ? 'selected' : '' ?>><?= $table ?></option>
     <?php endforeach; ?>
+  </select>
+  <br>
 
+<!-- 提示信息 -->
+<?php if (!empty($message)): ?>
+  <p class="message"><?= $message ?></p>
+<?php endif; ?>
 
-    <!-- 生成表格的列问题作为行 -->
-    <?php foreach ($table_columns as $column): ?>
-      <tr>
-        <td><?php echo htmlspecialchars($column["name"]); ?></td>
-        <?php foreach (['Q1', 'Q2', 'Q3'] as $row_question): ?>
-          <td>
-            <input type="text" name="table_<?php echo $column['id']; ?>_<?php echo $row_question; ?>" placeholder="">
-          </td>
-        <?php endforeach; ?>
-      </tr>
-    <?php endforeach; ?>
-  </table>
+<!-- 表格内容 -->
+<div id="table-content">
+  <!-- 表格内容将在这里实时加载 -->
+</div>
 
+<script>
+  const tableSelect = document.getElementById('table_name');
+  const tableContentDiv = document.getElementById('table-content');
 
-  <input type="submit" value="提交答案">
-</form>
+  // 加载选中表格的内容
+  function loadTableContent() {
+    const selectedTable = tableSelect.value;
+
+    if (selectedTable) {
+      // 发送AJAX请求获取表格内容
+      fetch(`fetch_table_data.php?table=${selectedTable}`)
+        .then(response => response.text())
+        .then(data => {
+          tableContentDiv.innerHTML = data;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          tableContentDiv.innerHTML = '<p>加载表内容失败。</p>';
+        });
+    } else {
+      tableContentDiv.innerHTML = '';
+    }
+  }
+
+  // 初始化时加载选中的表格内容
+  if (tableSelect.value) {
+    loadTableContent();
+  }
+
+  // 切换表格时实时加载内容
+  tableSelect.addEventListener('change', loadTableContent);
+</script>
+
+<div class="button-container">
+  <a  href="Ruler.php"><button>返回初始界面</button></a>
+</div>
 </body>
 </html>

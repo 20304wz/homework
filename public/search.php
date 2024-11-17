@@ -57,6 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin: 10px 0;
       padding: 5px;
     }
+    button {
+      font-size: 1.2em; /* 增大按钮文字 */
+      padding: 15px 25px; /* 增大按钮大小 */
+      border: none;
+      border-radius: 10px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -129,5 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($searchResults)): ?>
   <p>未找到匹配的数据。</p>
 <?php endif; ?>
+<div class="button-container">
+  <a href="Ruler.php"><button>返回初始界面</button></a>
+</div>
 </body>
 </html>

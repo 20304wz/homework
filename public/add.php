@@ -69,6 +69,19 @@ $conn->close();
       border-collapse: collapse;
       margin-top: 20px;
     }
+
+    button {
+       font-size: 1.2em; /* 增大按钮文字 */
+       padding: 15px 25px; /* 增大按钮大小 */
+       border: none;
+       border-radius: 10px;
+       background-color: #007BFF;
+       color: white;
+       cursor: pointer;
+       transition: background-color 0.3s, transform 0.2s;
+
+     }
+
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
@@ -104,7 +117,6 @@ $conn->close();
   <label for="values">值（用逗号分隔）：</label>
   <input type="text" name="values" id="values" placeholder="例如：1,张三,20">
   <br>
-
   <button type="submit">增加数据</button>
 </form>
 
@@ -150,5 +162,9 @@ $conn->close();
   // 切换表格时实时加载内容
   tableSelect.addEventListener('change', loadTableContent);
 </script>
+
+<div class="button-container">
+  <a  href="Ruler.php"><button>返回初始界面</button></a>
+</div>
 </body>
 </html>
