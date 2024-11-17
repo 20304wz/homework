@@ -18,7 +18,7 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
       font-size: 23px;
     }
     .red-text {
-      color: red;
+      color: #ff0000;
     }
   </style>
   <div class="question-links" style="text-align: center;">
