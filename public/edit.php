@@ -18,6 +18,18 @@ while ($row = $result->fetch_array()) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>实时编辑数据库表格</title>
   <style>
+
+    button {
+      font-size: 1.2em; /* 增大按钮文字 */
+      padding: 15px 25px; /* 增大按钮大小 */
+      border: none;
+      border-radius: 10px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+
+    }
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
@@ -159,5 +171,9 @@ while ($row = $result->fetch_array()) {
 
   tableSelect.addEventListener('change', loadTableContent);
 </script>
+<div class="button-container">
+  <a href="Ruler.php"><button>返回初始界面</button></a><br>
+  <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
+</div>
 </body>
 </html>

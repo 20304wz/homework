@@ -147,7 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   tableSelect.addEventListener('change', loadTableContent);
 </script>
 <div class="button-container">
-  <a href="Ruler.php"><button>返回初始界面</button></a>
+  <a href="Ruler.php"><button>返回初始界面</button></a><br>
+  <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
 </div>
 </body>
 </html>
