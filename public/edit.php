@@ -1,5 +1,14 @@
 <?php
-include 'db_connection.php'
+// 导入数据库连接文件
+require_once 'db_connection.php'; // 确保 db_connection.php 文件路径正确
+
+// 获取所有表名
+$sql = "SHOW TABLES";
+$result = $conn->query($sql);
+$tables = [];
+while ($row = $result->fetch_array()) {
+  $tables[] = $row[0];
+}
 ?>
 
 <!DOCTYPE html>
@@ -7,51 +16,148 @@ include 'db_connection.php'
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>修改问题</title>
+  <title>实时编辑数据库表格</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 50px;
+      margin: 20px;
     }
     h1 {
-      margin-bottom: 30px;
+      text-align: center;
     }
     form {
-      margin-top: 20px;
-    }
-    input[type="text"] {
-      width: 300px;
-      padding: 10px;
-      font-size: 16px;
       margin-bottom: 20px;
     }
-    button {
-      font-size: 1.2em; /* 增大按钮文字 */
-      padding: 15px 25px; /* 增大按钮大小 */
-      border: none;
-      border-radius: 10px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
-
+    select, button {
+      margin: 10px 0;
+      padding: 5px;
     }
-
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    td.editable {
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+    .loading {
+      text-align: center;
+      font-size: 1.2em;
+      color: #888;
+    }
+    .message {
+      margin-top: 20px;
+      color: green;
+    }
   </style>
 </head>
 <body>
-<h1>修改问题</h1>
-<form method="POST" action="">
-  <input type="text" name="question_id" placeholder="输入问题ID" required>
-  <br>
-  <input type="text" name="new_question" placeholder="输入新问题内容" required>
-  <br>
-  <button type="submit">保存修改</button><br>
+<h1>实时编辑数据库表格</h1>
+
+<!-- 选择表格 -->
+<form id="select-table-form">
+  <label for="table_name">选择表格：</label>
+  <select name="table_name" id="table_name" required>
+    <option value="">-- 请选择表格 --</option>
+    <?php foreach ($tables as $table): ?>
+      <option value="<?= $table ?>"><?= $table ?></option>
+    <?php endforeach; ?>
+  </select>
 </form>
-<div class="button-container">
-  <a href="Ruler.php"><button>返回初始界面</button></a>
+
+<!-- 表格内容 -->
+<div id="table-content">
+  <p class="loading">请选择表格以加载内容。</p>
 </div>
 
+<script>
+  const tableSelect = document.getElementById('table_name');
+  const tableContentDiv = document.getElementById('table-content');
+
+  function loadTableContent() {
+    const selectedTable = tableSelect.value;
+
+    if (selectedTable) {
+      tableContentDiv.innerHTML = '<p class="loading">加载中...</p>';
+      fetch(`fetch_table_editable.php?table=${encodeURIComponent(selectedTable)}`)
+        .then(response => response.text())
+        .then(data => {
+          tableContentDiv.innerHTML = data;
+          addEditListeners();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          tableContentDiv.innerHTML = '<p>加载表内容失败，请稍后再试。</p>';
+        });
+    } else {
+      tableContentDiv.innerHTML = '<p class="loading">请选择表格以加载内容。</p>';
+    }
+  }
+
+  function addEditListeners() {
+    const editableCells = document.querySelectorAll('.editable');
+    editableCells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        const originalContent = cell.textContent.trim();
+        if (cell.querySelector('input')) return;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = originalContent;
+        cell.innerHTML = '';
+        cell.appendChild(input);
+        input.focus();
+
+        const saveEdit = () => {
+          const newValue = input.value.trim();
+          const column = cell.getAttribute('data-column');
+          const id = cell.getAttribute('data-id');
+          const table = tableSelect.value;
+
+          if (newValue !== originalContent) {
+            fetch('update_table_cell.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ table, column, id, value: newValue })
+            })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  cell.textContent = newValue;
+                } else {
+                  cell.textContent = originalContent;
+                  alert('更新失败: ' + data.message);
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                cell.textContent = originalContent;
+                alert('更新失败，请稍后再试。');
+              });
+          } else {
+            cell.textContent = originalContent;
+          }
+        };
+
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') saveEdit();
+          if (e.key === 'Escape') cell.textContent = originalContent;
+        });
+      });
+    });
+  }
+
+  tableSelect.addEventListener('change', loadTableContent);
+</script>
 </body>
 </html>

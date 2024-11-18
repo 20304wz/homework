@@ -1,6 +1,6 @@
 <?php
 // 导入数据库连接文件
-include  'db_connection.php'; // 确保 db_connection.php 文件路径正确
+include 'db_connection.php'; // 确保 db_connection.php 文件路径正确
 
 // 获取所有表名
 $sql = "SHOW TABLES";
@@ -12,26 +12,24 @@ while ($row = $result->fetch_array()) {
 
 // 处理表单提交
 $message = "";
-$searchResults = [];
+$tableResults = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (!empty($_POST['table_name']) && !empty($_POST['search_column']) && isset($_POST['search_value'])) {
+  if (!empty($_POST['table_name'])) {
     $table_name = $_POST['table_name'];
-    $search_column = $_POST['search_column'];
-    $search_value = $_POST['search_value'];
 
-    // 构建查询 SQL
-    $sql = "SELECT * FROM `$table_name` WHERE `$search_column` LIKE '%$search_value%'";
+    // 查询整个表的内容
+    $sql = "SELECT * FROM `$table_name`";
 
     $result = $conn->query($sql);
     if ($result && $result->num_rows > 0) {
       while ($row = $result->fetch_assoc()) {
-        $searchResults[] = $row;
+        $tableResults[] = $row;
       }
     } else {
-      $message = "未找到匹配的数据。";
+      $message = "该表为空或未找到数据。";
     }
   } else {
-    $message = "请完整填写表名、搜索字段和搜索值！";
+    $message = "请选择一个表！";
   }
 }
 ?>
@@ -41,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>实时搜索表内容</title>
+  <title>查看表内容</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -58,15 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       padding: 5px;
     }
     button {
-      font-size: 1.2em; /* 增大按钮文字 */
-      padding: 15px 25px; /* 增大按钮大小 */
+      font-size: 1.2em;
+      padding: 15px 25px;
       border: none;
       border-radius: 10px;
       background-color: #007BFF;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
-
+    }
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
     }
     table {
       width: 100%;
@@ -88,9 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </style>
 </head>
 <body>
-<h1>搜索表内容</h1>
+<h1>查看表内容</h1>
 
-<!-- 搜索表单 -->
+<!-- 表单选择 -->
 <form method="POST">
   <label for="table_name">选择表格：</label>
   <select name="table_name" id="table_name" required>
@@ -101,15 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </select>
   <br>
 
-  <label for="search_column">搜索字段：</label>
-  <input type="text" name="search_column" id="search_column" placeholder="输入字段名" value="<?= $_POST['search_column'] ?? '' ?>" required>
-  <br>
-
-  <label for="search_value">搜索值：</label>
-  <input type="text" name="search_value" id="search_value" placeholder="输入搜索值" value="<?= $_POST['search_value'] ?? '' ?>" required>
-  <br>
-
-  <button type="submit">搜索</button>
+  <button type="submit">查看表内容</button>
 </form>
 
 <!-- 提示信息 -->
@@ -117,18 +110,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <p class="message"><?= $message ?></p>
 <?php endif; ?>
 
-<!-- 搜索结果 -->
-<?php if (!empty($searchResults)): ?>
+<!-- 表内容 -->
+<?php if (!empty($tableResults)): ?>
   <table>
     <thead>
     <tr>
-      <?php foreach (array_keys($searchResults[0]) as $header): ?>
+      <?php foreach (array_keys($tableResults[0]) as $header): ?>
         <th><?= $header ?></th>
       <?php endforeach; ?>
     </tr>
     </thead>
     <tbody>
-    <?php foreach ($searchResults as $row): ?>
+    <?php foreach ($tableResults as $row): ?>
       <tr>
         <?php foreach ($row as $cell): ?>
           <td><?= htmlspecialchars($cell) ?></td>
@@ -137,9 +130,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endforeach; ?>
     </tbody>
   </table>
-<?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($searchResults)): ?>
-  <p>未找到匹配的数据。</p>
+<?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($tableResults)): ?>
 <?php endif; ?>
+
 <div class="button-container">
   <a href="Ruler.php"><button>返回初始界面</button></a>
 </div>
