@@ -2,7 +2,7 @@
 // 数据库连接配置
 include 'db_connection.php';
 // 查询题目和选项
-$sql = "SELECT id, question, A, B, C, D, E FROM singlechoice";
+$sql = "SELECT ID, question, A, B, C, D, E FROM singlechoice";
 $result = $conn->query($sql);
 
 $questions = []; // 初始化$questions变量
