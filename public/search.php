@@ -65,9 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
     }
+
     button:hover {
       background-color: #0056b3;
-      transform: scale(1.05);
+      transform: scale(1.1); /* 鼠标悬停时放大 */
     }
     table {
       width: 100%;

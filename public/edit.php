@@ -1,6 +1,6 @@
 <?php
 // 导入数据库连接文件
-require_once 'db_connection.php'; // 确保 db_connection.php 文件路径正确
+include 'db_connection.php'; // 确保 db_connection.php 文件路径正确
 
 // 获取所有表名
 $sql = "SHOW TABLES";
@@ -29,6 +29,10 @@ while ($row = $result->fetch_array()) {
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
 
+    }
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.1); /* 鼠标悬停时放大 */
     }
     body {
       font-family: Arial, sans-serif;

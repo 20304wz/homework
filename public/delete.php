@@ -68,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       transition: background-color 0.3s, transform 0.2s;
 
     }
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.1); /* 鼠标悬停时放大 */
+    }
     th, td {
       border: 1px solid #ddd;
       padding: 8px;

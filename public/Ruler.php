@@ -1,10 +1,7 @@
+
 <?php
 // 数据库连接配置
 include 'db_connection.php';
-//include 'add.php';
-//include 'delete.php';
-//include 'search.php';
-//include 'edit.php'
 ?>
 <!DOCTYPE html>
 <html lang="zh">
@@ -54,6 +51,7 @@ include 'db_connection.php';
   <a href="search.php"><button>查找</button></a>
   <a href="edit.php"><button>修改</button></a>
   <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
+  <a href="quize.php"><button>进入学生版调查问卷</button></a>
 </div>
 </body>
 </html>

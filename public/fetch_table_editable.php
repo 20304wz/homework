@@ -1,5 +1,5 @@
 <?php
-require_once 'db_connection.php';
+include 'db_connection.php';
 
 $table = $_GET['table'] ?? '';
 if (!$table) {

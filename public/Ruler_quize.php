@@ -24,6 +24,10 @@ include 'get_table_columns.php'; // 表格行问题数据 (包含 id, name)
     transition: background-color 0.3s, transform 0.2s;
 
   }
+  button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1); /* 鼠标悬停时放大 */
+  }
   .question-links {
     font-size: 23px;
   }

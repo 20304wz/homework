@@ -21,11 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 构建 SQL 查询
     $columnsStr = implode(", ", array_map(function ($col) {
       return "`" . trim($col) . "`";
-    }, explode(",", $columns)));
+    }, explode("#", $columns)));
 
     $valuesStr = implode(", ", array_map(function ($val) {
       return "'" . trim($val) . "'";
-    }, explode(",", $values)));
+    }, explode("#", $values)));
 
     $sql = "INSERT INTO `$table_name` ($columnsStr) VALUES ($valuesStr)";
 
@@ -71,17 +71,19 @@ $conn->close();
     }
 
     button {
-      font-size: 1.2em; /* 增大按钮文字 */
-      padding: 15px 25px; /* 增大按钮大小 */
+      font-size: 1.2em;
+      padding: 15px 25px;
       border: none;
       border-radius: 10px;
       background-color: #007BFF;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
-
     }
-
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.1); /* 鼠标悬停时放大 */
+    }
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
@@ -111,11 +113,11 @@ $conn->close();
   <br>
 
   <!-- 输入字段和数据 -->
-  <label for="columns">字段名（用逗号分隔）：</label>
-  <input type="text" name="columns" id="columns" placeholder="例如：id,name,age">
+  <label for="columns">字段名（用#分隔）：</label>
+  <input type="text" name="columns" id="columns" placeholder="例如：id#name#age">
   <br>
-  <label for="values">值（用逗号分隔）：</label>
-  <input type="text" name="values" id="values" placeholder="例如：1,张三,20">
+  <label for="values">值（用#分隔）：</label>
+  <input type="text" name="values" id="values" placeholder="例如：1#张三#20">
   <br>
   <button type="submit">增加数据</button>
 </form>
@@ -164,7 +166,7 @@ $conn->close();
 </script>
 
 <div class="button-container">
-  <a  href="Ruler.php"><button>返回初始界面</button></a><br>
+  <a href="Ruler.php"><button>返回初始界面</button></a><br>
   <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
 </div>
 </body>
