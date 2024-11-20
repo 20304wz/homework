@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 include 'db_connection.php';
 // 从subjective表中获取主观题数据
 $subjective_questions = [];
-$sql = "SELECT id, question FROM subjective";
+$sql = "SELECT ID, question FROM subjective";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {

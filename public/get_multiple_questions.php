@@ -4,7 +4,7 @@ include 'db_connection.php';
 
 
 // 查询多选题数据
-$sql = "SELECT id, name, A, B, C, D FROM mulquestion";
+$sql = "SELECT ID, name, A, B, C, D FROM mulquestion";
 $result = $conn->query($sql);
 
 $multiple_questions = []; // 初始化 $multiple_questions
