@@ -6,46 +6,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $name = $_POST['name'];
   $stuID = $_POST['stuID'];
   $password = $_POST['password'];
+  $confirmPassword = $_POST['confirmPassword'];
   $type = $_POST['type'];
 
-  // 检查类型是否合法
-  if (!in_array($type, ['administrator', 'stu21', 'stu22', 'stu23'])) {
-    die("Invalid user type.");
-  }
-
-  // 检查学号是否已经存在
-  $checkSql = "SELECT * FROM info WHERE stuID = ?";
-  $checkStmt = $conn->prepare($checkSql);
-
-  if ($checkStmt) {
-    $checkStmt->bind_param("i", $stuID);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-
-    if ($checkResult->num_rows > 0) {
-      $message = "<p class='error'>注册失败，该学号已经存在.</p>";
-    } else {
-      // 插入数据到数据库
-      $sql = "INSERT INTO info (name, stuID, password, type) VALUES (?, ?, ?, ?)";
-      $stmt = $conn->prepare($sql);
-
-      if ($stmt) {
-        $stmt->bind_param("siss", $name, $stuID, $password, $type);
-        if ($stmt->execute()) {
-          $message = "<p class='success'>注册成功！<a href='login.php'>点击这里登录</a></p>";
-        } else {
-          $message = "<p class='error'>错误: " . $stmt->error . "</p>";
-        }
-        $stmt->close();
-      } else {
-        $message = "<p class='error'>准备语句出错: " . $conn->error . "</p>";
-      }
-    }
+  // 检查两次密码是否一致
+  if ($password !== $confirmPassword) {
+    $message = "<p class='error'>密码不一致，请重新输入。</p>";
   } else {
-    $message = "<p class='error'>准备语句出错: " . $conn->error . "</p>";
+    // 检查类型是否合法
+    if (!in_array($type, ['administrator', 'stu21', 'stu22', 'stu23'])) {
+      die("Invalid user type.");
+    }
+
+    // 检查学号是否已经存在
+    $checkSql = "SELECT * FROM info WHERE stuID = ?";
+    $checkStmt = $conn->prepare($checkSql);
+
+    if ($checkStmt) {
+      $checkStmt->bind_param("i", $stuID);
+      $checkStmt->execute();
+      $checkResult = $checkStmt->get_result();
+
+      if ($checkResult->num_rows > 0) {
+        $message = "<p class='error'>注册失败，该学号已经存在。</p>";
+      } else {
+        // 插入数据到数据库
+        $sql = "INSERT INTO info (name, stuID, password, type) VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+
+        if ($stmt) {
+          $stmt->bind_param("siss", $name, $stuID, $password, $type);
+          if ($stmt->execute()) {
+            $message = "<p class='success'>注册成功！<a href='login.php'>点击这里登录</a></p>";
+          } else {
+            $message = "<p class='error'>错误: " . $stmt->error . "</p>";
+          }
+          $stmt->close();
+        } else {
+          $message = "<p class='error'>准备语句出错: " . $conn->error . "</p>";
+        }
+      }
+    } else {
+      $message = "<p class='error'>准备语句出错: " . $conn->error . "</p>";
+    }
   }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -139,6 +147,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <label>密码:</label>
     <input type="password" name="password" required>
 
+    <label>确认密码:</label>
+    <input type="password" name="confirmPassword" required>
+
     <label>类型:</label>
     <select name="type" required>
       <option value="administrator">管理者</option>
@@ -146,10 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <option value="stu22">22级学生</option>
       <option value="stu23">23级学生</option>
     </select>
-    <button type="submit">提交</button>、
-    <a href="login.php"><button>返回登录界面</button></a>
+    <button type="submit">提交</button>
+    <a href="login.php"><button type="button">返回登录界面</button></a>
   </form>
 </div>
-
 </body>
 </html>

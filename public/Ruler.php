@@ -50,6 +50,7 @@ include 'db_connection.php';
   <a href="delete.php"><button>删除</button></a>
   <a href="search.php"><button>查找</button></a>
   <a href="edit.php"><button>修改</button></a>
+  <a href="sort.php"><button>排序</button></a>
   <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
   <a href="quize.php"><button>进入学生版调查问卷</button></a>
 </div>
