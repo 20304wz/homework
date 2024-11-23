@@ -46,15 +46,20 @@ try {
     }
   }
 
+  // 构建符合1.x模式的单选题答案字符串
+  $single_answers_string = '';
+  foreach ($single_answers as $index => $answer) {
+    $single_answers_string.= ($index + 1). '.'. $answer. ',';
+  }
+  $single_answers_string = rtrim($single_answers_string, ',');
+
+
   // 计算单选题平均分并转换为整数
   if (count($single_answers) > 0) {
     $single_average_score = (int) round($total_single_score / count($single_answers));
   } else {
     $single_average_score = 0;
   }
-
-  // 将单选题答案转换成字符串
-  $single_answers_string = implode(",", $single_answers);
 
 
   // 处理多选题部分（假设之前代码中的相关逻辑不变）
@@ -102,10 +107,10 @@ try {
     }
   }
 
-  // 重新构建多选题答案字符串（只保留字母）
+  // 重新构建多选题答案字符串（按照1.xx模式）
   $new_multi_answers_string = '';
-  foreach ($multi_answers as $answer) {
-    $new_multi_answers_string.= $answer. ',';
+  foreach ($multi_answers as $index => $answer) {
+    $new_multi_answers_string.= ($index + 1). '.'. $answer. ',';
   }
   $new_multi_answers_string = rtrim($new_multi_answers_string, ',');
 
