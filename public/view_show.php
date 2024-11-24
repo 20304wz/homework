@@ -101,8 +101,9 @@
 <div class="button-container">
   <input type="number" id="questionNumberInput" placeholder="请输入单选题题号">
   <button onclick="showGraph('single', getQuestionNumber())">显示对应题号单选题图形</button>
-  <button onclick="showGraph('multi')">显示多选题图形</button>
   <button onclick="showGraph('single')">显示所有单选题图形</button>
+  <button onclick="showGraph('multi')">显示多选题答案分布图</button>
+  <button onclick="showGraph('multi_score')">显示多选题分数柱状图</button>
   <button id="backButton" style="display: none;" onclick="resetPage()">返回</button>
 </div>
 
@@ -114,7 +115,7 @@
 <script>
   /**
    * 显示图形的函数
-   * @param {string} type - 图形类型 ('single' 或 'multi')
+   * @param {string} type - 图形类型 ('single', 'multi', 或 'multi_score')
    * @param {number} [questionNumber] - 单选题题号 (可选)
    */
   function showGraph(type, questionNumber = null) {
@@ -127,11 +128,13 @@
     // 构建请求 URL
     let url = '';
     if (type === 'multi') {
-      url = 'view.php?graph=multi';
+      url = 'view.php?graph=multi'; // 多选题答案分布图
+    } else if (type === 'multi_score') {
+      url = 'view.php?graph=multi_score'; // 多选题分数柱状图
     } else if (type === 'single') {
       url = questionNumber !== null
-        ? `view_d.php?questionNumber=${questionNumber}`
-        : 'view.php?graph=single';
+        ? `view_d.php?questionNumber=${questionNumber}` // 指定题号单选题图
+        : 'view.php?graph=single'; // 所有单选题图
     }
 
     // 发起请求
