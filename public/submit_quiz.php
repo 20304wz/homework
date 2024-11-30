@@ -123,7 +123,7 @@ try {
       $subjective_answers[] = $value;
     }
   }
-  $subjective_answers_string = implode(",", $subjective_answers);
+  $subjective_answers_string = implode("#", $subjective_answers);
 
   // 处理表格题答案
   $table_answers = [];
@@ -143,7 +143,7 @@ try {
   $tableAnswerData = '';
   foreach ($table_answers as $column_id => $column_answer) {
     foreach ($column_answer as $row_question => $value) {
-      $tableAnswerData .= "C{$column_id}.Q{$row_question}:{$value},";
+      $tableAnswerData .= "C{$column_id}.Q{$row_question}:{$value}#";
     }
   }
   $tableAnswerData = rtrim($tableAnswerData, ',');

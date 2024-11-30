@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Question Graphs</title>
+  <title>问卷数据展示</title>
+  <script src="https://www.goat1000.com/tagcanvas.min.js"></script>
   <style>
-    /* 全局样式 */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -22,7 +22,6 @@
       color: #555;
     }
 
-    /* 按钮样式 */
     button {
       margin: 5px;
       padding: 12px 20px;
@@ -44,8 +43,7 @@
       cursor: not-allowed;
     }
 
-    /* 输入框样式 */
-    input[type="number"] {
+    input[type="number"], input[type="text"] {
       padding: 10px;
       font-size: 16px;
       width: 200px;
@@ -54,13 +52,12 @@
       border-radius: 5px;
     }
 
-    input[type="number"]:focus {
+    input[type="number"]:focus, input[type="text"]:focus {
       outline: none;
       border-color: #007BFF;
     }
 
-    /* 图形容器样式 */
-    .graph-container {
+    .graph-container, .wordcloud-container {
       width: 80%;
       max-width: 600px;
       height: 400px;
@@ -76,98 +73,235 @@
       overflow: auto;
     }
 
-    .graph-container img {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 5px;
+    .hidden {
+      display: none;
     }
 
-    .graph-container p {
+    canvas {
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 800px;
+      height: 600px;
+    }
+
+    #loading {
+      font-size: 18px;
+      color: #555;
+    }
+
+    #error {
       font-size: 16px;
-      color: #888;
+      color: red;
     }
 
-    /* 按钮区域 */
-    .button-container {
-      margin: 20px 0;
+    #tags {
+      display: none;
+    }
+
+    #subjectName {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    #courseWrapper {
+      display: none;
+      margin-top: 20px;
     }
   </style>
 </head>
 
 <body>
-<h1>Question Graphs Viewer</h1>
+<h1>问卷答题情况显示</h1>
 
-<!-- 按钮区域 -->
+<!-- 主选择区域 -->
 <div class="button-container">
-  <input type="number" id="questionNumberInput" placeholder="请输入单选题题号">
-  <button onclick="showGraph('single', getQuestionNumber())">显示对应题号单选题图形</button>
-  <button onclick="showGraph('single')">显示所有单选题图形</button>
-  <button onclick="showGraph('multi')">显示多选题答案分布图</button>
-  <button onclick="showGraph('multi_score')">显示多选题分数柱状图</button>
-  <button id="backButton" style="display: none;" onclick="resetPage()">返回</button>
+  <button onclick="showSection('wordcloud')">查看词云</button>
+  <button onclick="showSection('bargraph')">查看柱状图</button>
 </div>
 
-<!-- 图形容器 -->
-<div id="graph-container" class="graph-container">
-  <p>选择一个操作以显示图形。</p>
+<!-- 词云区域 -->
+<div id="wordcloud-section" class="hidden">
+  <button onclick="loadWordCloud('subAnswer')">查看主观题词云</button>
+  <button onclick="loadWordCloud('tableAnswer')">查看表格题词云</button>
+  <div id="courseWrapper">
+    <p id="subjectName"></p>
+    <input type="text" id="subjectInput" placeholder="输入科目号 (如 C1)">
+    <button onclick="loadSubjectWordCloud()">按课程生成词云</button>
+  </div>
+  <p id="loading">请选择词云数据</p>
+  <p id="error"></p>
+  <canvas id="myCanvas" width="800" height="600"></canvas>
+  <div id="tags"></div>
+</div>
+
+<!-- 柱状图区域 -->
+<div id="bargraph-section" class="hidden">
+  <input type="number" id="questionNumberInput" placeholder="请输入题号">
+  <button onclick="showGraph('single', getQuestionNumber())">显示对应题号单选题图形</button>
+  <button onclick="showGraph('multi_question', getQuestionNumber())">显示对应题号多选题图形</button>
+  <button onclick="showGraph('single')">显示所有单选题图形</button>
+  <button onclick="showGraph('multi')">显示多选题答案分布图</button>
+  <button onclick="showGraph('multi_score')">显示多选题得分柱状图</button>
+  <button id="backButton" style="display: none;" onclick="resetPage()">返回</button>
+  <div id="graph-container" class="graph-container">
+    <p>选择一个操作以显示图形。</p>
+  </div>
 </div>
 
 <script>
-  /**
-   * 显示图形的函数
-   * @param {string} type - 图形类型 ('single', 'multi', 或 'multi_score')
-   * @param {number} [questionNumber] - 单选题题号 (可选)
-   */
+  function showSection(section) {
+    document.getElementById('wordcloud-section').classList.add('hidden');
+    document.getElementById('bargraph-section').classList.add('hidden');
+
+    if (section === 'wordcloud') {
+      document.getElementById('wordcloud-section').classList.remove('hidden');
+      document.getElementById('courseWrapper').style.display = 'block'; // 显示按课程词云的输入框
+    } else if (section === 'bargraph') {
+      document.getElementById('bargraph-section').classList.remove('hidden');
+      document.getElementById('courseWrapper').style.display = 'none'; // 隐藏按课程词云的输入框
+    }
+  }
+
+  function loadWordCloud(type) {
+    document.getElementById('loading').textContent = '正在加载词云数据...';
+    document.getElementById('error').textContent = '';
+    const canvas = document.getElementById('myCanvas');
+    const tagsContainer = document.getElementById('tags');
+
+    tagsContainer.innerHTML = '';
+    TagCanvas.Delete('myCanvas');
+
+    fetch(`view_cloud.php?type=${type}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.words.length > 0) {
+          tagsContainer.innerHTML = data.words
+            .map(word => `<a href="#" style="font-size:${word.size}px;" data-weight="${word.size}">${word.text}</a>`)
+            .join('');
+          TagCanvas.Start('myCanvas', 'tags', {
+            textColour: '#333',
+            outlineColour: '#000',
+            reverse: true,
+            depth: 1.0,
+            maxSpeed: 0.1,
+            weight: true,
+            weightMode: 'size',
+            initial: [0.1, 0.1],
+          });
+          document.getElementById('loading').textContent = '';
+        } else {
+          throw new Error('词云数据为空或后端返回失败。');
+        }
+      })
+      .catch(error => {
+        document.getElementById('loading').textContent = '';
+        document.getElementById('error').textContent = `加载失败: ${error.message}`;
+      });
+  }
+
+  function loadSubjectWordCloud() {
+    document.getElementById('loading').textContent = '正在加载词云数据...';
+    document.getElementById('error').textContent = '';
+    document.getElementById('subjectName').textContent = '';
+    const canvas = document.getElementById('myCanvas');
+    const tagsContainer = document.getElementById('tags');
+    const subject = document.getElementById('subjectInput').value.trim();
+
+    if (!subject) {
+      document.getElementById('loading').textContent = '';
+      document.getElementById('error').textContent = '请输入有效的科目号！';
+      return;
+    }
+
+    tagsContainer.innerHTML = '';
+    TagCanvas.Delete('myCanvas');
+
+    fetch(`view_cloud.php?subject=${subject}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.words.length > 0) {
+          if (data.subjectName) {
+            document.getElementById('subjectName').textContent = `${data.subjectName}`;
+          }
+          tagsContainer.innerHTML = data.words
+            .map(word => `<a href="#" style="font-size:${word.size}px;" data-weight="${word.size}">${word.text}</a>`)
+            .join('');
+          TagCanvas.Start('myCanvas', 'tags', {
+            textColour: '#333',
+            outlineColour: '#000',
+            reverse: true,
+            depth: 1.0,
+            maxSpeed: 0.1,
+            weight: true,
+            weightMode: 'size',
+            initial: [0.1, 0.1],
+          });
+          document.getElementById('loading').textContent = '';
+        } else {
+          throw new Error('词云数据为空或后端返回失败。');
+        }
+      })
+      .catch(error => {
+        document.getElementById('loading').textContent = '';
+        document.getElementById('error').textContent = `加载失败: ${error.message}`;
+      });
+  }
+
   function showGraph(type, questionNumber = null) {
     const graphContainer = document.getElementById('graph-container');
     const backButton = document.getElementById('backButton');
 
-    // 清空容器内容
     graphContainer.innerHTML = '<p>加载中，请稍候...</p>';
-
-    // 构建请求 URL
     let url = '';
-    if (type === 'multi') {
-      url = 'view.php?graph=multi'; // 多选题答案分布图
+    if (type === 'single') {
+      url = questionNumber !== null ? `view_d.php?graph=single&questionNumber=${questionNumber}` : 'view.php?graph=single';
+    } else if (type === 'multi_question') {
+      url = questionNumber !== null ? `view_d.php?graph=multi_question&questionNumber=${questionNumber}` : null;
+    } else if (type === 'multi') {
+      url = 'view.php?graph=multi';
     } else if (type === 'multi_score') {
-      url = 'view.php?graph=multi_score'; // 多选题分数柱状图
-    } else if (type === 'single') {
-      url = questionNumber !== null
-        ? `view_d.php?questionNumber=${questionNumber}` // 指定题号单选题图
-        : 'view.php?graph=single'; // 所有单选题图
+      url = 'view.php?graph=multi_score';
     }
 
-    // 发起请求
+    if (!url) {
+      alert('请输入题号！');
+      return;
+    }
+
     const xhttp = new XMLHttpRequest();
     xhttp.responseType = 'blob';
     xhttp.onload = function () {
       if (xhttp.status === 200) {
-        const url = URL.createObjectURL(xhttp.response);
-        graphContainer.innerHTML = ''; // 清空容器
-        const img = document.createElement('img');
-        img.src = url;
-        graphContainer.appendChild(img);
-
-        // 隐藏其他按钮，显示返回按钮
-        toggleButtons(false);
+        const imageUrl = URL.createObjectURL(xhttp.response);
+        graphContainer.innerHTML = `<img src="${imageUrl}" alt="图形">`;
         backButton.style.display = 'inline-block';
       } else {
-        graphContainer.innerHTML = `<p>无法加载图形，请稍后重试。</p>`;
+        graphContainer.innerHTML = '<p>无法加载图形，请稍后重试。</p>';
       }
     };
 
     xhttp.onerror = function () {
-      graphContainer.innerHTML = `<p>发生网络错误，请检查连接。</p>`;
+      graphContainer.innerHTML = '<p>发生网络错误，请检查连接。</p>';
     };
 
     xhttp.open('GET', url, true);
     xhttp.send();
   }
 
-  /**
-   * 获取输入的题号
-   * @returns {number|null} 输入的题号或 null
-   */
   function getQuestionNumber() {
     const input = document.getElementById('questionNumberInput');
     const value = input.value.trim();
@@ -178,30 +312,11 @@
     return parseInt(value, 10);
   }
 
-  /**
-   * 重置页面状态
-   */
   function resetPage() {
     const graphContainer = document.getElementById('graph-container');
     const backButton = document.getElementById('backButton');
-
-    // 清空容器并显示默认消息
     graphContainer.innerHTML = '<p>选择一个操作以显示图形。</p>';
-
-    // 恢复按钮状态
-    toggleButtons(true);
     backButton.style.display = 'none';
-  }
-
-  /**
-   * 切换按钮的显示状态
-   * @param {boolean} isVisible - 是否显示操作按钮
-   */
-  function toggleButtons(isVisible) {
-    const buttons = document.querySelectorAll('button:not(#backButton)');
-    buttons.forEach(button => {
-      button.style.display = isVisible ? 'inline-block' : 'none';
-    });
   }
 </script>
 </body>

@@ -28,13 +28,12 @@ function getSingleAnswerData($questionNumber) {
   if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
       $answer = $row['singleAnswer'];
-      // 假设答案格式为 "1.A,2.B"
       $parts = explode(',', $answer);
       foreach ($parts as $part) {
         $subParts = explode('.', $part);
         if (count($subParts) === 2) {
           list($num, $letter) = $subParts;
-          if ($num == $questionNumber && isset($answerStats[$letter]) && in_array($letter, ['A', 'B', 'C', 'D', 'E'])) {
+          if ($num == $questionNumber && isset($answerStats[$letter])) {
             $answerStats[$letter]++;
           }
         }
@@ -44,36 +43,68 @@ function getSingleAnswerData($questionNumber) {
   return $answerStats;
 }
 
-// 根据题号生成单选题柱状图
-if (isset($_GET['questionNumber'])) {
-  $questionNumber = $_GET['questionNumber'];
-  $singleData = getSingleAnswerData($questionNumber);
-
-  // 创建图形对象
-  $graphSingle = new Graph(350, 250);
-  $graphSingle->SetScale('textlin');
-  $graphSingle->SetMargin(40, 30, 20, 40);
-
-  // 创建柱状图对象
-  $barplotSingle = new BarPlot([$singleData['A'], $singleData['B'], $singleData['C'], $singleData['D'], $singleData['E']]);
-  $barplotSingle->SetFillColor('lightblue');
-
-  // 设置X轴标签
-  $graphSingle->xaxis->SetTickLabels(['A', 'B', 'C', 'D', 'E']);
-
-  // 添加柱状图到图形对象
-  $graphSingle->Add($barplotSingle);
-
-  // 设置标题
-  $graphSingle->title->Set('Question ' . $questionNumber . ' - Single Answer Statistics');
-
-  // 输出图形
-  try {
-    $graphSingle->Stroke();
-  } catch (Exception $e) {
-    error_log("单选题第" . $questionNumber . "题图形输出失败: " . $e->getMessage());
+// 获取多选题单题答案分布数据
+function getMultiAnswerDataByQuestion($questionNumber) {
+  global $conn;
+  $sql = "SELECT mulAnswer FROM answer";
+  $result = $conn->query($sql);
+  $answerStats = [
+    'A' => 0,
+    'B' => 0,
+    'C' => 0,
+    'D' => 0
+    // 'E' removed
+  ];
+  if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+      $answers = $row['mulAnswer'];
+      $parts = explode(',', $answers);
+      foreach ($parts as $part) {
+        $subParts = explode('.', $part);
+        if (count($subParts) === 2) {
+          list($num, $letters) = $subParts;
+          if ($num == $questionNumber) {
+            foreach (str_split($letters) as $letter) {
+              if (isset($answerStats[$letter])) {
+                $answerStats[$letter]++;
+              }
+            }
+          }
+        }
+      }
+    }
   }
-} else {
-  die('未接收到题号参数');
+  return $answerStats;
 }
+
+if (isset($_GET['graph'])) {
+  $graphType = $_GET['graph'];
+
+  if ($graphType === 'single' && isset($_GET['questionNumber'])) {
+    $questionNumber = $_GET['questionNumber'];
+    $singleData = getSingleAnswerData($questionNumber);
+    $graph = new Graph(400, 300);
+    $graph->SetScale('textlin');
+    $barplot = new BarPlot(array_values($singleData));
+    $barplot->SetFillColor('lightblue');
+    $graph->xaxis->SetTickLabels(array_keys($singleData));
+    $graph->Add($barplot);
+    $graph->title->Set("Question $questionNumber - Single Answer Statistics");
+    $graph->Stroke();
+  } elseif ($graphType === 'multi_question' && isset($_GET['questionNumber'])) {
+    $questionNumber = $_GET['questionNumber'];
+    $multiData = getMultiAnswerDataByQuestion($questionNumber);
+    $graph = new Graph(400, 300);
+    $graph->SetScale('textlin');
+    $barplot = new BarPlot(array_values($multiData));
+    $barplot->SetFillColor('lightblue');
+    $graph->xaxis->SetTickLabels(array_keys($multiData));
+    $graph->Add($barplot);
+    $graph->title->Set("Question $questionNumber - Multi-Answer Distribution");
+    $graph->Stroke();
+  } else {
+    die('无效的图形类型请求或缺少题号参数');
+  }
+}
+
 ?>

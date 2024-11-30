@@ -66,9 +66,8 @@ function getMultiAnswerDataGroupedByQuestion() {
                 'A' => 0,
                 'B' => 0,
                 'C' => 0,
-                'D' => 0,
-                'E' => 0
-              ]; // 初始化每道题的选项统计
+                'D' => 0 // 初始化去掉 E 选项
+              ];
             }
             // 累加每个选项的选择次数
             for ($i = 0; $i < strlen($letters); $i++) {
@@ -88,26 +87,55 @@ function getMultiAnswerDataGroupedByQuestion() {
 // 获取多选题分数累加数据
 function getMultiAnswerScores() {
   global $conn;
-  $sql = "SELECT mulAnswer FROM answer"; // 从数据库获取多选题数据
+
+  // 查询正确答案
+  $sql = "SELECT ID, answer FROM mulanswer"; // 假设mulanswer表存储正确答案
   $result = $conn->query($sql);
 
-  $scores = []; // 初始化每道题的分数累加
-
+  $correctAnswers = [];
   if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-      $answers = $row['mulAnswer'];
+      $correctAnswers[$row['ID']] = str_split($row['answer']); // 将每道题的正确答案分割为数组存储
+    }
+  }
 
-      if (!empty($answers)) {
-        $parts = explode(',', $answers); // 拆分为每道题的数据
+  // 查询用户提交的答案
+  $sql = "SELECT mulAnswer FROM answer"; // 获取用户多选题答案
+  $result = $conn->query($sql);
+
+  $scores = []; // 初始化分数结果数组
+  if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+      $userAnswers = $row['mulAnswer']; // 用户答案字符串
+
+      if (!empty($userAnswers)) {
+        $parts = explode(',', $userAnswers); // 拆分为每道题的数据
         foreach ($parts as $part) {
-          $subParts = explode('.', $part); // 分割题号与选项
+          $subParts = explode('.', $part); // 分割题号与用户选项
           if (count($subParts) === 2) {
-            list($num, $letters) = $subParts; // 获取题号和选项
-            $score = strlen($letters); // 分数为选项数量
-            if (!isset($scores[$num])) {
-              $scores[$num] = 0; // 初始化题号的分数
+            list($num, $userOptions) = $subParts; // 获取题号和用户选择的选项
+            $userOptions = str_split($userOptions); // 转换为数组
+
+            if (isset($correctAnswers[$num])) {
+              $correctOptions = $correctAnswers[$num]; // 正确答案
+              $intersection = array_intersect($userOptions, $correctOptions); // 用户选择的正确选项
+              $wrongOptions = array_diff($userOptions, $correctOptions); // 用户选择的错误选项
+
+              if (!isset($scores[$num])) {
+                $scores[$num] = 0; // 初始化题号的分数
+              }
+
+              if (count($wrongOptions) > 0) {
+                // 存在错误选项，分数为0
+                $scores[$num] += 0;
+              } elseif (count($intersection) === count($correctOptions)) {
+                // 全对，满分10分
+                $scores[$num] += 10;
+              } else {
+                // 部分对，按比例评分
+                $scores[$num] += round((count($intersection) / count($correctOptions)) * 10, 2);
+              }
             }
-            $scores[$num] += $score; // 累加分数
           }
         }
       }
@@ -145,13 +173,13 @@ if ($graphType === 'single') {
   $multiData = getMultiAnswerDataGroupedByQuestion();
 
   // 提取题号和对应的选项统计
+  // 提取题号和对应的选项统计
   $xLabels = array_keys($multiData); // 横轴为题号
   $yValues = [
     'A' => [],
     'B' => [],
     'C' => [],
-    'D' => [],
-    'E' => []
+    'D' => [] // 去掉 E
   ];
 
   foreach ($multiData as $num => $stats) {
@@ -159,7 +187,6 @@ if ($graphType === 'single') {
     $yValues['B'][] = $stats['B'];
     $yValues['C'][] = $stats['C'];
     $yValues['D'][] = $stats['D'];
-    $yValues['E'][] = $stats['E'];
   }
 
   $graphMulti = new Graph(700, 400);
@@ -169,7 +196,7 @@ if ($graphType === 'single') {
   $graphMulti->xaxis->SetTitle('Question ID', 'center');
   $graphMulti->yaxis->SetTitle('Selection Count', 'center');
 
-  // 创建每个选项的柱状图对象
+// 创建每个选项的柱状图对象
   $barA = new BarPlot($yValues['A']);
   $barA->SetFillColor('lightblue');
   $barA->SetLegend('A');
@@ -186,16 +213,13 @@ if ($graphType === 'single') {
   $barD->SetFillColor('pink');
   $barD->SetLegend('D');
 
-  $barE = new BarPlot($yValues['E']);
-  $barE->SetFillColor('purple');
-  $barE->SetLegend('E');
-
-  // 合并柱状图
-  $groupBar = new GroupBarPlot([$barA, $barB, $barC, $barD, $barE]);
+// 合并柱状图
+  $groupBar = new GroupBarPlot([$barA, $barB, $barC, $barD]); // 去掉 E
   $graphMulti->Add($groupBar);
 
-  // 设置标题
-  $graphMulti->title->Set('Multi-Answer Distribution by Question');
+// 设置标题
+  $graphMulti->title->Set('Multi-Answer Distribution by Question (No E)');
+
 
   // 输出图形
   try {
