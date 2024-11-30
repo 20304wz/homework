@@ -121,6 +121,7 @@
 <div class="button-container">
   <button onclick="showSection('wordcloud')">查看词云</button>
   <button onclick="showSection('bargraph')">查看柱状图</button>
+  <a href="Ruler.php"><button>返回管理者界面</button></a>
 </div>
 
 <!-- 词云区域 -->

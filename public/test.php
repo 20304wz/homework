@@ -1,159 +1,110 @@
 <?php
-// 数据库连接设置
-include 'db_connection.php';
+$servername = "localhost";
+$username = "root";
+$password = "20030304Yjm.";
+$dbname = "questionnaire";
 
-// 获取所有表名
-$sql = "SHOW TABLES";
-$result = $conn->query($sql);
-$tables = [];
-while ($row = $result->fetch_array()) {
-  $tables[] = $row[0];
+// 创建连接
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// 检查连接
+if ($conn->connect_error) {
+  die("连接失败: " . $conn->connect_error);
 }
 
-// 处理表单提交
-$message = "";
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (!empty($_POST['table_name']) && !empty($_POST['columns']) && !empty($_POST['values'])) {
-    $table_name = $_POST['table_name'];
-    $columns = $_POST['columns'];
-    $values = $_POST['values'];
-
-    // 构建 SQL 查询
-    $columnsStr = implode(", ", array_map(function ($col) {
-      return "`" . trim($col) . "`";
-    }, explode(",", $columns)));
-
-    $valuesStr = implode(", ", array_map(function ($val) {
-      return "'" . trim($val) . "'";
-    }, explode(",", $values)));
-
-    $sql = "INSERT INTO `$table_name` ($columnsStr) VALUES ($valuesStr)";
-
-    if ($conn->query($sql) === TRUE) {
-      $message = "数据成功插入到表 $table_name 中！";
-    } else {
-      $message = "插入失败: " . $conn->error;
-    }
-  } else {
-    $message = "请完整填写表名、字段和数据！";
-  }
+// 查询singleAnswer数据
+$single_sql = "SELECT ID, singleAnswer FROM answer";
+$single_result = $conn->query($single_sql);
+$single_answers = [];
+while ($row = $single_result->fetch_assoc()) {
+  $id = $row['ID'];
+  $answer = substr($row['singleAnswer'], 2); // 假设答案格式为 "1.A"，我们只取 ".A"
+  $single_answers[$id] = $answer;
 }
 
-// 关闭连接
+// 查询mulAnswer数据
+$mul_sql = "SELECT ID, mulAnswer FROM answer";
+$mul_result = $conn->query($mul_sql);
+$mul_answers = [];
+while ($row = $mul_result->fetch_assoc()) {
+  $id = $row['ID'];
+  $answer = $row['mulAnswer'];
+  $mul_answers[$id] = $answer;
+}
+
 $conn->close();
+
+// 将PHP数组转换为JavaScript对象
+$single_json = json_encode($single_answers);
+$mul_json = json_encode($mul_answers);
 ?>
+
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>增加数据并实时查看</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    form {
-      margin-bottom: 20px;
-    }
-    input, select, button {
-      margin: 10px 0;
-      padding: 5px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    button {
-      font-size: 1.2em; /* 增大按钮文字 */
-      padding: 15px 25px; /* 增大按钮大小 */
-      border: none;
-      border-radius: 10px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
-
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    .message {
-      margin-top: 20px;
-      color: green;
-    }
-  </style>
+  <title>Chart Display</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<h1>增加数据并实时查看表内容</h1>
 
-<!-- 选择表格 -->
-<form method="POST" id="add-form">
-  <label for="table_name">选择表格：</label>
-  <select name="table_name" id="table_name" required>
-    <option value="">-- 请选择表格 --</option>
-    <?php foreach ($tables as $table): ?>
-      <option value="<?= $table ?>" <?= isset($_POST['table_name']) && $_POST['table_name'] === $table ? 'selected' : '' ?>><?= $table ?></option>
-    <?php endforeach; ?>
-  </select>
-  <br>
-
-<!-- 提示信息 -->
-<?php if (!empty($message)): ?>
-  <p class="message"><?= $message ?></p>
-<?php endif; ?>
-
-<!-- 表格内容 -->
-<div id="table-content">
-  <!-- 表格内容将在这里实时加载 -->
-</div>
+<canvas id="singleChart" width="400" height="400"></canvas>
+<canvas id="mulChart" width="400" height="400"></canvas>
 
 <script>
-  const tableSelect = document.getElementById('table_name');
-  const tableContentDiv = document.getElementById('table-content');
+  // 单选题图表
+  var singleData = <?php echo $single_json; ?>;
+  var singleLabels = Object.keys(singleData);
+  var singleValues = Object.values(singleData);
 
-  // 加载选中表格的内容
-  function loadTableContent() {
-    const selectedTable = tableSelect.value;
-
-    if (selectedTable) {
-      // 发送AJAX请求获取表格内容
-      fetch(`fetch_table_data.php?table=${selectedTable}`)
-        .then(response => response.text())
-        .then(data => {
-          tableContentDiv.innerHTML = data;
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          tableContentDiv.innerHTML = '<p>加载表内容失败。</p>';
-        });
-    } else {
-      tableContentDiv.innerHTML = '';
+  var ctx1 = document.getElementById('singleChart').getContext('2d');
+  var singleChart = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: singleLabels,
+      datasets: [{
+        label: 'Single Choice Answers',
+        data: singleValues,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
     }
-  }
+  });
 
-  // 初始化时加载选中的表格内容
-  if (tableSelect.value) {
-    loadTableContent();
-  }
+  // 多选题图表
+  var mulData = <?php echo $mul_json; ?>;
+  var mulLabels = Object.keys(mulData);
+  var mulValues = Object.values(mulData);
 
-  // 切换表格时实时加载内容
-  tableSelect.addEventListener('change', loadTableContent);
+  var ctx2 = document.getElementById('mulChart').getContext('2d');
+  var mulChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: mulLabels,
+      datasets: [{
+        label: 'Multiple Choice Answers',
+        data: mulValues,
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 </script>
 
-<div class="button-container">
-  <a  href="Ruler.php"><button>返回初始界面</button></a>
-</div>
 </body>
 </html>

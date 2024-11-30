@@ -1,7 +1,7 @@
 
 <?php
 // 数据库连接配置
-include 'db_connection.php';
+ include 'db_connection.php';
 ?>
 <!DOCTYPE html>
 <html lang="zh">
@@ -53,6 +53,7 @@ include 'db_connection.php';
   <a href="sort.php"><button>排序</button></a>
   <a href="Ruler_quize.php"><button>进入调查问卷</button></a>
   <a href="quize.php"><button>进入学生版调查问卷</button></a>
+  <a href="view_show.php"><button>进入图形展示</button></a>
 </div>
 </body>
 </html>

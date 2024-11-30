@@ -3,7 +3,8 @@
 include 'db_connection.php';
 
 // 引入JpGraph库文件
-$jpgraphPath = 'G:\JpGraph\jpgraph\src\\'; // 修改为你本地的JpGraph路径
+//$jpgraphPath = 'G:\JpGraph\jpgraph\src\\'; // 修改为你本地的JpGraph路径
+$jpgraphPath = 'D:\JpGraph\src\\';
 $graphLibs = ['jpgraph.php', 'jpgraph_bar.php'];
 foreach ($graphLibs as $lib) {
   $libPath = $jpgraphPath . $lib;
